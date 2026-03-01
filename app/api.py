@@ -128,4 +128,8 @@ def get_job(job_id: str, request: Request):
     job = job_manager.read_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="job not found")
+
+    if job.get("status") == "running":
+        job["gpu"] = job_manager.gpu_monitor.get_stats()
+
     return job

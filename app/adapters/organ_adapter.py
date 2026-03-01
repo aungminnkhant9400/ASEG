@@ -142,6 +142,7 @@ class OrganAdapter(BaseAdapter):
 
         ct_image = sitk.DICOMOrient(sitk.ReadImage(str(input_path)), "LPS")
         ct_array = sitk.GetArrayFromImage(ct_image).astype(np.float32)
+        spacing_x, spacing_y, spacing_z = ct_image.GetSpacing()
 
         union_mask = np.zeros_like(ct_array, dtype=bool)
         for mask_path in mask_paths_dict.values():
@@ -185,6 +186,14 @@ class OrganAdapter(BaseAdapter):
                 ct_slice = np.flipud(ct_slice)
                 mask_slice = np.flipud(mask_slice)
 
+            # Correct anisotropic voxel spacing so sagittal/coronal are not vertically squashed.
+            if plane_name == "axial":
+                row_spacing, col_spacing = spacing_y, spacing_x
+            elif plane_name == "sagittal":
+                row_spacing, col_spacing = spacing_z, spacing_y
+            else:  # coronal
+                row_spacing, col_spacing = spacing_z, spacing_x
+
             p1, p99 = np.percentile(ct_slice, [1, 99])
             if p99 <= p1:
                 p1 = float(np.min(ct_slice))
@@ -194,6 +203,21 @@ class OrganAdapter(BaseAdapter):
 
             normalized = np.clip(ct_slice, p1, p99)
             normalized = ((normalized - p1) / (p99 - p1) * 255.0).astype(np.uint8)
+
+            base_spacing = min(float(row_spacing), float(col_spacing))
+            row_scale = max(0.5, min(6.0, float(row_spacing) / base_spacing))
+            col_scale = max(0.5, min(6.0, float(col_spacing) / base_spacing))
+            new_h = max(1, int(round(normalized.shape[0] * row_scale)))
+            new_w = max(1, int(round(normalized.shape[1] * col_scale)))
+            if new_h != normalized.shape[0] or new_w != normalized.shape[1]:
+                normalized = np.array(
+                    Image.fromarray(normalized, mode="L").resize((new_w, new_h), resample=Image.Resampling.BILINEAR)
+                )
+                mask_slice = np.array(
+                    Image.fromarray((mask_slice.astype(np.uint8) * 255), mode="L").resize(
+                        (new_w, new_h), resample=Image.Resampling.NEAREST
+                    )
+                ) > 0
 
             rgb = np.stack([normalized, normalized, normalized], axis=-1).astype(np.float32)
             alpha = 0.35

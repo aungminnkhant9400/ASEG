@@ -8,6 +8,7 @@ import {
   Divider,
   FormControlLabel,
   IconButton,
+  LinearProgress,
   Paper,
   Stack,
   Switch,
@@ -65,6 +66,13 @@ const previewGridStyles = {
 };
 
 const previewPlaneLabels = ["Axial", "Sagittal", "Coronal"];
+
+function previewHeightFor(label: string): number {
+  if (label === "Sagittal" || label === "Coronal") {
+    return 460
+  }
+  return 380
+}
 
 function LabelValue({ label, value }: { label: string; value: string }) {
   return (
@@ -145,6 +153,22 @@ export function JobDetails({
 
       {job && job.error && job.status === "failed" && <Alert severity="error">{job.error}</Alert>}
 
+      {job && (job.status === "pending" || job.status === "running") && (
+        <Paper sx={{ p: 2.5 }}>
+          <Stack spacing={1.25}>
+            <Typography variant="subtitle1" fontWeight={600}>
+              Segmentation in progress
+            </Typography>
+            <LinearProgress />
+            <Typography variant="body2" color="text.secondary">
+              {job.status === "pending"
+                ? "Job is queued and waiting to start."
+                : "Model is running. GPU stats below are refreshed every poll."}
+            </Typography>
+          </Stack>
+        </Paper>
+      )}
+
       {job && (
         <Paper sx={{ p: 2.5 }}>
           <Typography variant="h6" gutterBottom>
@@ -202,15 +226,29 @@ export function JobDetails({
             {previewUrls.length === 0 && <Alert severity="info">No preview images were generated.</Alert>}
             {previewUrls.map((url, index) => (
               <Paper key={url} variant="outlined" sx={{ p: 1.25 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  {previewPlaneLabels[index] ?? `Slice ${index + 1}`}
-                </Typography>
-                <Box
-                  component="img"
-                  src={url}
-                  alt={`${previewPlaneLabels[index] ?? `Slice ${index + 1}`} overlay`}
-                  sx={{ width: "100%", borderRadius: 1, border: "1px solid #ddd" }}
-                />
+                {(() => {
+                  const label = previewPlaneLabels[index] ?? `Slice ${index + 1}`;
+                  return (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        {label}
+                      </Typography>
+                      <Box
+                        component="img"
+                        src={url}
+                        alt={`${label} overlay`}
+                        sx={{
+                          width: "100%",
+                          height: previewHeightFor(label),
+                          objectFit: "contain",
+                          backgroundColor: "#000",
+                          borderRadius: 1,
+                          border: "1px solid #ddd"
+                        }}
+                      />
+                    </>
+                  );
+                })()}
               </Paper>
             ))}
           </Box>
