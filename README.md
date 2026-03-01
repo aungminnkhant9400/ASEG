@@ -54,7 +54,7 @@ GPU run (lab server):
 docker run --rm --gpus all -p 8000:8000 aseg:latest
 ```
 
-Enable automatic upload cleanup after successful jobs by setting `ASEG_AUTO_DELETE_UPLOADS=true` in your run command.
+Enable automatic upload cleanup after successful jobs by setting `ASEG_AUTO_DELETE_UPLOADS=true` (default is `false`; failed jobs keep uploads for debugging).
 
 Open UI: `http://localhost:8000`
 

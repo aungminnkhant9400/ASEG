@@ -94,6 +94,15 @@ class JobManager:
             self._append_job_log(logs_path, warning_msg)
             return
 
+        if not job_upload_dir.is_dir():
+            warning_msg = (
+                f"[cleanup] Refused upload deletion for job {job_id}: "
+                f"path '{job_upload_dir}' is not a directory."
+            )
+            LOGGER.warning(warning_msg)
+            self._append_job_log(logs_path, warning_msg)
+            return
+
         shutil.rmtree(job_upload_dir, ignore_errors=True)
         if job_upload_dir.exists():
             warning_msg = (
