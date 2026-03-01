@@ -151,16 +151,26 @@ class OrganAdapter(BaseAdapter):
                 raise RuntimeError("Mask and input volume shapes do not match for preview generation")
             union_mask = np.logical_or(union_mask, mask_array)
 
-        # ct_array and union_mask are [z, y, x] after LPS orientation.
+        z_dim, y_dim, x_dim = ct_array.shape
+
+        # Axial: center the slice around segmented anatomy (lungs/liver).
         if np.any(union_mask):
-            axial_index = int(np.argmax(np.sum(union_mask, axis=(1, 2))))
-            sagittal_index = int(np.argmax(np.sum(union_mask, axis=(0, 1))))
-            coronal_index = int(np.argmax(np.sum(union_mask, axis=(0, 2))))
+            z_hits = np.where(np.any(union_mask, axis=(1, 2)))[0]
+            axial_index = int((int(z_hits[0]) + int(z_hits[-1])) // 2)
         else:
-            z_dim, y_dim, x_dim = ct_array.shape
             axial_index = z_dim // 2
-            sagittal_index = x_dim // 2
+
+        # Sagittal/Coronal: choose body-center slices so full anatomy is visible.
+        body_mask = ct_array > -900.0
+        if np.any(body_mask):
+            body_coords = np.argwhere(body_mask)
+            y_min, y_max = int(body_coords[:, 1].min()), int(body_coords[:, 1].max())
+            x_min, x_max = int(body_coords[:, 2].min()), int(body_coords[:, 2].max())
+            coronal_index = (y_min + y_max) // 2
+            sagittal_index = (x_min + x_max) // 2
+        else:
             coronal_index = y_dim // 2
+            sagittal_index = x_dim // 2
 
         plane_slices = [
             ("axial", ct_array[axial_index, :, :], union_mask[axial_index, :, :]),
@@ -169,9 +179,11 @@ class OrganAdapter(BaseAdapter):
         ]
 
         preview_paths: List[Path] = []
-        for idx, (_plane_name, ct_slice, mask_slice) in enumerate(plane_slices):
-            ct_slice = np.flipud(ct_slice)
-            mask_slice = np.flipud(mask_slice)
+        for idx, (plane_name, ct_slice, mask_slice) in enumerate(plane_slices):
+            # Keep axial in native orientation. For sagittal/coronal place superior direction at top.
+            if plane_name in {"sagittal", "coronal"}:
+                ct_slice = np.flipud(ct_slice)
+                mask_slice = np.flipud(mask_slice)
 
             p1, p99 = np.percentile(ct_slice, [1, 99])
             if p99 <= p1:
