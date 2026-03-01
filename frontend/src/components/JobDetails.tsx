@@ -66,13 +66,7 @@ const previewGridStyles = {
 };
 
 const previewPlaneLabels = ["Axial", "Sagittal", "Coronal"];
-
-function previewHeightFor(label: string): number {
-  if (label === "Sagittal" || label === "Coronal") {
-    return 460
-  }
-  return 380
-}
+const PREVIEW_IMAGE_HEIGHT = 460;
 
 function LabelValue({ label, value }: { label: string; value: string }) {
   return (
@@ -239,7 +233,7 @@ export function JobDetails({
                         alt={`${label} overlay`}
                         sx={{
                           width: "100%",
-                          height: previewHeightFor(label),
+                          height: PREVIEW_IMAGE_HEIGHT,
                           objectFit: "contain",
                           backgroundColor: "#000",
                           borderRadius: 1,
