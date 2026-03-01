@@ -1,0 +1,9 @@
+﻿fastapi
+uvicorn[standard]
+python-multipart
+SimpleITK
+numpy
+pillow
+pynvml
+torch==2.5.1
+totalsegmentator

@@ -1,0 +1,86 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CT Organ Segmentation</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 24px;
+      max-width: 980px;
+    }
+    form {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .targets {
+      display: flex;
+      gap: 16px;
+    }
+    #preview-list {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    #preview-list img {
+      width: 250px;
+      border: 1px solid #ccc;
+    }
+    pre {
+      background: #f7f7f7;
+      padding: 10px;
+      border-radius: 6px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>CT Organ Segmentation (v1)</h1>
+
+  <form id="segment-form">
+    <label>
+      NIfTI file (.nii or .nii.gz)
+      <input id="file-input" type="file" accept=".nii,.nii.gz" required>
+    </label>
+
+    <label>
+      Task
+      <select id="task-select">
+        <option value="organ">organ</option>
+      </select>
+    </label>
+
+    <div class="targets">
+      <label><input type="checkbox" name="target" value="lungs" checked> lungs</label>
+      <label><input type="checkbox" name="target" value="liver" checked> liver</label>
+    </div>
+
+    <button type="submit">Run</button>
+  </form>
+
+  <section>
+    <h2>Status</h2>
+    <p id="job-meta"></p>
+    <pre id="status-box">No job submitted.</pre>
+  </section>
+
+  <section id="result-section" hidden>
+    <h2>Runtime + GPU</h2>
+    <pre id="runtime-gpu"></pre>
+
+    <h2>Previews</h2>
+    <div id="preview-list"></div>
+
+    <h2>Downloads</h2>
+    <ul id="download-list"></ul>
+  </section>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

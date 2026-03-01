@@ -1,0 +1,42 @@
+# --- secrets ---
+.env
+*.env
+
+# --- python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- runtime outputs/uploads (do NOT commit) ---
+uploads/
+outputs/
+data/uploads/
+data/outputs/
+
+# --- medical / imaging files (do NOT commit) ---
+*.nii
+*.nii.gz
+*.dcm
+*.mha
+*.mhd
+*.nrrd
+
+# --- model/cache (do NOT commit) ---
+data/hf_cache/
+data/ts_cache/
+.huggingface/
+.cache/
+wandb/
+runs/
+
+# --- frontend ---
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.log
+
+# --- OS junk ---
+.DS_Store
+__MACOSX/
+Thumbs.db
